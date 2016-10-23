@@ -5,19 +5,19 @@ import sys
 #Dangerous
 sys.setrecursionlimit = 1500
 
-# Z = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '\\']
+# Z = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//']
 Z = ['&', '|', '+']
 
-def Main1():
-    confirmRun = prompt("Are you sure? [y/n]")
+def Main():
+    confirmRun = input("Are you sure [y/n]?\n")
     if confirmRun == "y":
         results = []
         results = getResults(results)
         results = unique(results)
         tempR = verifyResults(results)
-        results = tempR[0] 
+        results = tempR[0]
         n = tempR[1]
-        
+
 def getResults(Results):
     test = 100
     i = choice(range(test))
@@ -31,13 +31,13 @@ def getResults(Results):
                         Results += [answer]
     return Results
 
-def verifyResults(Results): 
+def verifyResults(Results):
     n = 0
     for i in Results:
         if calculate(i) == True:
             correct = True
             j = 20
-            while j > 0: 
+            while j > 0:
                 if calculate(i) == False:
                     correct = False
                 j -= 1
@@ -51,7 +51,7 @@ def test(L):
         if calculate(L) == False:
             return False
     return True
-                
+
 def evaluation(a,b,w,x,y,z):
     try:
         if eval(str(eval(a+Z[w]+b))+Z[x]+str(eval(a+Z[y]+b)))== eval(a+Z[z]+b):
@@ -62,7 +62,7 @@ def evaluation(a,b,w,x,y,z):
 def unique(L):
     if len(L) <= 1:
         return L
-    if L[0] in L[1:]: 
+    if L[0] in L[1:]:
         return unique(L[1:])
     return L[0:1] + unique(L[1:])
 
@@ -74,13 +74,13 @@ def calculate(L):
             return True
         else:
             return False
-    except: 
+    except:
         pass
 
 
 #correct = True
 #j = 0
-#while j > 0: 
+#while j > 0:
 #if calculate(i) == False:
 #correct = False
 #j -= 1
@@ -88,4 +88,4 @@ def calculate(L):
 #print(i)
 
 if __name__  == "__main__":
-    main()
+    Main()
