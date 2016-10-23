@@ -1,11 +1,24 @@
 # Two digits:
 from random import *
+import sys
+
+#Dangerous
+sys.setrecursionlimit = 1500
 
 # Z = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '\\']
 Z = ['&', '|', '+']
 
 def Main1():
-    results = []
+    confirmRun = prompt("Are you sure? [y/n]")
+    if confirmRun == "y":
+        results = []
+        results = getResults(results)
+        results = unique(results)
+        tempR = verifyResults(results)
+        results = tempR[0] 
+        n = tempR[1]
+        
+def getResults(Results):
     test = 100
     i = choice(range(test))
     i2 = choice(range(test))
@@ -15,10 +28,12 @@ def Main1():
                 for z in range(len(Z)):
                     answer = evaluation(str(i),str(i2),w,x,y,z)
                     if answer!= None:
-                        results += [answer]
-    results = unique(results)
+                        Results += [answer]
+    return Results
+
+def verifyResults(Results): 
     n = 0
-    for i in results:
+    for i in Results:
         if calculate(i) == True:
             correct = True
             j = 20
@@ -29,7 +44,7 @@ def Main1():
             if correct == True:
                 print(i)
                 n+=1
-    return n
+    return (Results, n)
 
 def test(L):
     for j in range(2):
@@ -72,3 +87,5 @@ def calculate(L):
 #if correct == True:
 #print(i)
 
+if __name__  == "__main__":
+    main()
