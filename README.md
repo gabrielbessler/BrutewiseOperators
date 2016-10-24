@@ -1,15 +1,24 @@
 # hello-world
 
 These are changes to the readme.md file. 
-I'm not actually sure how any of this works.
 
 .md = Markdown
 
 # Header1 
+or 
+Header 1
+=== 
 ## Header 2
+or 
+Header 2
+--
 #### Header 4
 
-How does this work 
-===
-Or this one?
---- 
+*italics*
+__bold__
+*__why not both__*
+~strikethrough
+
+1. List Item 1
+1. List Item 2
+1. List Item 3
