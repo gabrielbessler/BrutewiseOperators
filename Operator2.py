@@ -96,9 +96,11 @@ def getResults(Results):
     return Results
 
 def verifyResults(Results):
-    '''DOCSTRING'''
+    '''verifyResults() iterates through the list of possible results and
+    checks each one several times using calculate().
+    Returns the updated list of results.'''
     n = 0
-    #TODO: make sure this is actually working (doesn't seem like it is)
+    tempRes = []
     for i in Results:
         if calculate(i) == True:
             correct = True
@@ -110,12 +112,15 @@ def verifyResults(Results):
             if correct == True:
                 if displayingResults == True:
                     print(i)
+                tempRes += [i]
                 n+=1
-    return (Results, n)
+    return (tempRes, n)
 
-def test(L):
-    '''DOCSTRING'''
-    for j in range(2):
+def test(L, N=2):
+    """Input list in form ['op1', 'op2', 'op3', 'op4'] and a number N.
+    Output: Runs '(A [op1] B) [op2] (A [op3] B) = A [op4] B' N times.
+    Returns True if this expression is True all N times. """
+    for j in range(N):
         if calculate(L) == False:
             return False
     return True
@@ -129,7 +134,7 @@ def evaluation(a,b,w,x,y,z):
         pass
 
 def unique(L):
-    '''DOCSTRING'''
+    '''Filters out duplicates from a list.'''
     usingRecursion = False
     #Using Recursion to filter duplicates
     #Times: [0.022388404642697424, 0.013230643145107024, 0.00878131772242341]
