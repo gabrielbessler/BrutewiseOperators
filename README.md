@@ -1,24 +1,23 @@
-# hello-world
+## Brutewise Operators Program
 
-These are changes to the readme.md file. 
+Goal:
+Find interesting patterns in expressions involving a combination of real and bitwise operators.
 
-.md = Markdown
+### Current Results
 
-# Header1 
-or 
-Header 1
-=== 
-## Header 2
-or 
-Header 2
---
-#### Header 4
+#### Type One Equation
+(A [x1] B) [y1] (A [x2] B) = A [y2] B
 
-*italics*
-__bold__
-*__why not both__*
-~strikethrough
+[x1], [x2] are elements of {'<<', '>>', '&', '|' }
+[y1], [y2] are elements of {'+', '-', '*', '/', '%', '**'}
 
-1. List Item 1
-1. List Item 2
-1. List Item 3
+#### Type Two Equations
+
+(A [x1] B) [x2] (A [x3] B) = A [x4] B
+
+[x1], [x2], [x3], [x4] are elements of {'&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//'}
+
+### Current Implementation
+
+Type one equations can be found with RandomOperator.py
+Type two equations can be found with Operator2.py
