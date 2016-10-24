@@ -2,13 +2,16 @@
 from random import *
 import sys
 import timeit
+import csv
 
 #Dangerous
 sys.setrecursionlimit = 1500
 #If timing is enabled, python will use timeit() to output the time of each
 #process in Main()
-timeFunctions = True
+timeFunctions = False
 displayingResults = False
+#Results will be exported in a CSV file
+exportResults = True
 
 Z = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//']
 #Z with most elements removed. Used for testing without crashing due to recursion max depth reached.
@@ -47,7 +50,6 @@ def Main():
             print("Function getResults() time: " + str(getResultsTime) + "seconds")
             print("unique(): " + str(uniqueTime) + "seconds")
             print("Function verifyResults() time: " + str(verifyResultsTime) +"seconds")
-
         if timeFunctions == False:
             results = []
             results = getResults(results)
@@ -55,6 +57,29 @@ def Main():
             tempR = verifyResults(results)
             results = tempR[0]
             n = tempR[1]
+            if exportResults == True:
+                saveResultsAsCSV(results)
+
+def saveResultsAsCSV(L):
+    #We will be using a CSV (comma separated values) file to save results.
+    #This file-type is supported in python and can be used in excel/various programs.
+
+    #filename, mode = writing,
+    #with open("brutewiseOpsResults.csv", "w", newline='') as csv_file:
+    #    writer = csv.writer(csv_file, delimiter=',')
+    #    for line in L:
+    #        writer.writerow(line)
+
+    #need to set newline='' otherwise it will add a \n after every line
+    resultsFile = open("brutewiseOpsResults.csv", "w", newline='')
+    resultsFileWriter = csv.writer(resultsFile, delimiter=',')
+
+    #Alternative?
+    #resultsFileWriter.writerows(L)
+
+    for i in L:
+        resultsFileWriter.writerow(i)
+    resultsFile.close()
 
 def getResults(Results):
     '''DOCSTRING'''
