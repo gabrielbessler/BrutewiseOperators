@@ -27,8 +27,10 @@ COMP_METHOD = 1
 #Number of iterations (Program will test REPEAT_NUM ^2 different expressions)
 REPEAT_NUM = 10
 #Range of values for which the expressions will be tested
-MAX_TEST_VAL = 10
-MIN_TEST_VAL = 0
+MAX_TEST_VAL = 10000
+MIN_TEST_VAL = 1
+LOW_LOW_TEST_VAL = 1
+HIGH_LOW_TEST_VAL = 100
 
 def main():
     '''Manages the computation and output of results.'''
@@ -59,6 +61,7 @@ def main():
     #Remove duplicates in Results
     Results = filter(Results)
     #Stores the percentage of duplicates found
+    #TODO: Create function to remove commutativity duplicates (as in A+B=B+A)
     filteringEfficiency = (originalLenResults - len(Results))/originalLenResults
 
     #Checks if results are actually valid
@@ -103,16 +106,20 @@ def filter(L):
 
 def calculate(L):
     '''Takes a list of operators for a Type One expression and returns True if the expression is valid.'''
-
     a = choice(range(MIN_TEST_VAL,MAX_TEST_VAL))
     b = choice(range(MIN_TEST_VAL,MAX_TEST_VAL))
-
+    c = choice(range(LOW_LOW_TEST_VAL,HIGH_LOW_TEST_VAL))
+    
     try:
         if eval( str(eval('a'+L[0]+'b')) + L[1] + str(eval('a'+L[2]+'b')) ) == eval('a'+L[3]+'b'):
-            return True
-        return False
+            if eval( str(eval('a'+L[0]+'c')) + L[1] + str(eval('a'+L[2]+'c')) ) == eval('a'+L[3]+'c'):
+                if eval( str(eval('c'+L[0]+'b')) + L[1] + str(eval('c'+L[2]+'b')) ) == eval('c'+L[3]+'b'):
+                    if eval( str(eval('a'+L[0]+'a')) + L[1] + str(eval('a'+L[2]+'a')) ) == eval('a'+L[3]+'a'):
+                        return True
+        else:
+            return False
     except:
-        return False
+        pass
 
 #Initializer
 if __name__ == "__main__":
