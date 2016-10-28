@@ -44,8 +44,8 @@ def GetIterativeResults():
     '''Gets output by iterating through all possible combinations of operators.'''
     results = GetResults()
     results = FilterDuplicates(results)
-    results = NetCommuteFilter(results)
     results = VerifyResults(results)
+    results = NetCommuteFilter(results)
     results = tempR[0]
     n = tempR[1]
     if exportResults == True:
