@@ -17,6 +17,13 @@ Z = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//']
 #Z with most elements removed. Used for testing without crashing due to recursion max depth reached.
 #Z = ['&', '|', '+']
 
+#Values exploited in code:
+initial_test_value = 100
+MIN_TEST_VAL = 10000
+MAX_TEST_VAL = 1
+LOW_LOW_TEST_VAL = 1
+HIGH_LOW_TEST_VAL = 100
+
 def Main():
     '''DOCSTRING'''
     #Timeit Test Results:
@@ -27,7 +34,7 @@ def Main():
     # BUG: getResults takes 10x as long every ~1/5 times
 
     #Optimization:
-    #1) Use iteration instead of recursion?
+    #1) Use iteration instead of recursion? Check (see unique below).
     #2) Memoization?
 
     confirmRun = input("Are you sure [y/n]?\n")
@@ -54,9 +61,10 @@ def Main():
             results = []
             results = getResults(results)
             results = unique(results)
-            tempR = verifyResults(results)
+            results = NetCommuteFilter(results)
+            results = verifyResults(results)
             results = tempR[0]
-            n = tempR[1]
+            n = tempR[1]                        # is this necessary?
             if exportResults == True:
                 saveResultsAsCSV(results)
 
@@ -83,7 +91,7 @@ def saveResultsAsCSV(L):
 
 def getResults(Results):
     '''DOCSTRING'''
-    test = 100
+    test = initial_test_value
     i = choice(range(test))
     i2 = choice(range(test))
     for w in range(len(Z)):
@@ -133,40 +141,71 @@ def evaluation(a,b,w,x,y,z):
     except:
         pass
 
-def unique(L):
+def unique(Results):
     '''Filters out duplicates from a list.'''
-    usingRecursion = False
-    #Using Recursion to filter duplicates
-    #Times: [0.022388404642697424, 0.013230643145107024, 0.00878131772242341]
-    if usingRecursion == True:
-        if len(L) <= 1:
-            return L
-        if L[0] in L[1:]:
-            return unique(L[1:])
-        return L[0:1] + unique(L[1:])
-    else:
-        #set() does not work (unhashable list)
-        return L
-        #WORK IN PROGRESS
-        #res = []
-        #
-        #for i in range(len(L)):
-        #    if L[i] not in L[i+1:]:
-        #        res += L[i]
-        #return res
+    UniRes = []
+    for i in range(len(Results)):
+        if Results[i] not in Results[i+1:]:
+            UniRes += Results[i:i+1]
+    return UniRes  
+#TODO: Functions in between the lines below need work. They are not currently operating correctly! 
+#There are two because one may be better than the other.
+# ------------------------------------------------------------------------------
+def NetCommuteFilter1(Results):
+    '''Filters out commutatively identical lists'''
+    ComRes = []
+    for i in range(len(Results)):
+        for j in range( i+1, len(Results) ):
+            ComRes += CommuteFilter1(Results[i], Results[j])
+    ComRes = unique(ComRes)
+    return ComRes
 
+
+def CommuteFilter1(L1, L2):
+    '''Checks if two lists are commutatively identical'''
+    if L1[1] == '+' and L2[1] == '+' and L1[3] == L2[3]:
+        if L1[0] == L2[2] and L1[2] == L2[0]:
+            return L1
+    elif L1[1] == '*' and L2[1] == '*' and L1[3] == L2[3]:
+        if L1[0] == L2[2] and L1[2] == L2[0]:
+            return L1
+    return [L1]+[L2]
+
+def CommuteFilter(L1, L2):
+    '''Checks if two lists are commutatively identical'''
+    if L1[0] == L2[2] and L1[2] == L2[0]:
+        if L1[3] == L2[3]:
+            if L1[1] == '+' and L2[1] == '+':
+                return True
+            elif L1[1] == '*' and L2[1] == '*':
+                return True
+    else:
+        return False
+
+def NetCommuteFilter(Results):
+    '''Filters out commutatively identical lists'''
+    ComRes = []
+    for i in range(len(Results)):
+        for j in range( i+1, len(Results) ):
+            if CommuteFilter(Results[i], Results[j]) == False:
+                ComRes += [ Results[i] ]
+    return ComRes
+# --------------------------------------------------------------------
 def calculate(L):
-    '''DOCSTRING'''
-    a = choice(range(1,10000))
-    b = choice(range(1,10000))
+    '''Takes a list of operators for a Type One expression and returns True if the expression is valid.'''
+    a = choice(range(MIN_TEST_VAL,MAX_TEST_VAL))
+    b = choice(range(MIN_TEST_VAL,MAX_TEST_VAL))
+    c = choice(range(LOW_LOW_TEST_VAL,HIGH_LOW_TEST_VAL))
     try:
         if eval( str(eval('a'+L[0]+'b')) + L[1] + str(eval('a'+L[2]+'b')) ) == eval('a'+L[3]+'b'):
-            return True
+            if eval( str(eval('a'+L[0]+'c')) + L[1] + str(eval('a'+L[2]+'c')) ) == eval('a'+L[3]+'c'):
+                if eval( str(eval('c'+L[0]+'b')) + L[1] + str(eval('c'+L[2]+'b')) ) == eval('c'+L[3]+'b'):
+                    if eval( str(eval('a'+L[0]+'a')) + L[1] + str(eval('a'+L[2]+'a')) ) == eval('a'+L[3]+'a'):
+                        return True
         else:
             return False
     except:
         pass
-
 
 #correct = True
 #j = 0
