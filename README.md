@@ -1,7 +1,13 @@
 ## Brutewise Operators Program
+### A Random Operator Generator
 
-Goal:
+#### Goal:
 Find interesting patterns in expressions involving a combination of real and bitwise operators.
+
+#### Description
+This program uses a brute force approach to finding a list of expressions
+involving bitwise operations and two numbers that are equivalent to normal
+base 10 operations between those same two numbers.
 
 ### Current Results
 
@@ -9,6 +15,7 @@ Find interesting patterns in expressions involving a combination of real and bit
 (A *x1* B) *y1* (A *x2* B) = A *y2* B
 
 *x1*, *x2* are elements of {'<<', '>>', '&', '|' }
+
 *y1*, *y2* are elements of {'+', '-', '*', '/', '%', '**'}
 
 #### Type Two Equations
@@ -20,4 +27,5 @@ Find interesting patterns in expressions involving a combination of real and bit
 ### Current Implementation
 
 Type one equations can be found with RandomOperator.py
+
 Type two equations can be found with Operator2.py
