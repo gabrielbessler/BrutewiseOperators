@@ -4,106 +4,104 @@ import sys
 import timeit
 import csv
 
-#Dangerous
-sys.setrecursionlimit = 1500
-#If timing is enabled, python will use timeit() to output the time of each
-#process in Main()
+#If enabled, outputs runtime of key functions
 timeFunctions = False
+#If enabled, prints results in CMD
 displayingResults = False
 #Results will be exported in a CSV file
 exportResults = True
 
-Z = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//']
-#Z with most elements removed. Used for testing without crashing due to recursion max depth reached.
-#Z = ['&', '|', '+']
+B_operators = ['<<', '>>', '&', '|' ] #basic biwise ops
+T_operators = ['+', '-', '*', '/', '%'] #basic real ops
+A_operators = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//'] #larger set of both bitwise and real ops
 
-#Values exploited in code:
-initial_test_value = 100
-MIN_TEST_VAL = 10000
-MAX_TEST_VAL = 1
+#Range of test values:
+INITIAL_TEST_VALUE_MAX = 100 #potential results range
+MIN_TEST_VAL = 1
+MAX_TEST_VAL = 10000
 LOW_LOW_TEST_VAL = 1
 HIGH_LOW_TEST_VAL = 100
 
+#Method 1 = Sampling
+#Method 2 = Iteration (Exhaustive)
+COMP_METHOD = 2
+REPEAT_NUM = 100 # number of iterations for sampling
+
 def Main():
-    '''DOCSTRING'''
-    #Timeit Test Results:
-    # ***** uniqueTime is causing the max recurs depth error, even though it
-    # uses <1% of processing time ******
-    # uniqueTime uses about 1/3
-    # verify uses 2/3
-    # BUG: getResults takes 10x as long every ~1/5 times
-
-    #Optimization:
-    #1) Use iteration instead of recursion? Check (see unique below).
-    #2) Memoization?
-
+    '''Manages the computation and output of results'''
     confirmRun = input("Are you sure [y/n]?\n")
     if confirmRun == "y":
         if timeFunctions == True:
-            getResultsTime = []
-            uniqueTime = []
-            verifyResultsTime = []
-            for i in range(3):
-                results = []
-                #Alternatively, could just use time.time() twice and find the difference
-                #Might be more efficient to use timeit.default_timer (saw on stackoverflow)
-                getResultsTime += [timeit.timeit(lambda: getResults(results), number = 1)]
-                #DISABLED
-                #=================================================================
-                uniqueTime += [timeit.timeit(lambda: unique(results), number = 1)]
-                #=================================================================
-                verifyResultsTime += [timeit.timeit(lambda: verifyResults(results)[0], number = 1)]
-            #TODO: learn printf
-            print("Function getResults() time: " + str(getResultsTime) + "seconds")
-            print("unique(): " + str(uniqueTime) + "seconds")
-            print("Function verifyResults() time: " + str(verifyResultsTime) +"seconds")
+            TimeFuncs()
         if timeFunctions == False:
-            results = []
-            results = getResults(results)
-            results = unique(results)
-            results = NetCommuteFilter(results)
-            results = verifyResults(results)
-            results = tempR[0]
-            n = tempR[1]                        # is this necessary?
-            if exportResults == True:
-                saveResultsAsCSV(results)
+            if COMP_METHOD == 1:
+                #TODO: This
+                print("Work in progress...")
+            elif COMP_METHOD == 2:
+                GetIterativeResults()
 
-def saveResultsAsCSV(L):
-    #We will be using a CSV (comma separated values) file to save results.
-    #This file-type is supported in python and can be used in excel/various programs.
+def GetIterativeResults():
+    '''Gets output by iterating through all possible combinations of operators.'''
+    results = GetResults()
+    results = FilterDuplicates(results)
+    results = NetCommuteFilter(results)
+    results = VerifyResults(results)
+    results = tempR[0]
+    n = tempR[1]
+    if exportResults == True:
+        #TODO: output this at the top of the CSV
+        SaveResultsAsCSV(results)
 
-    #filename, mode = writing,
-    #with open("brutewiseOpsResults.csv", "w", newline='') as csv_file:
-    #    writer = csv.writer(csv_file, delimiter=',')
-    #    for line in L:
-    #        writer.writerow(line)
+def TimeFuncs():
+    '''Finds the time it takes to run each of the functions in the program
+    (for debugging/optimization).'''
 
-    #need to set newline='' otherwise it will add a \n after every line
+    getResultsTime = []
+    filterDuplicatesTime = []
+    netCommuteFilterTime = []
+    verifyResultsTime = []
+
+    for i in range(3):
+        results = []
+        getResultsTime += [timeit.timeit(lambda: GetResults(results), number = 1)]
+        filterDuplicatesTime += [timeit.timeit(lambda: FilterDuplicates(results), number=1)]
+        netCommuteFilterTime += [timeit.timeit(lambda: NetCommuteFilter(results), number = 1)]
+        verifyResultsTime += [timeit.timeit(lambda: VerifyResults(results)[0], number = 1)]
+
+    print("Function getResults() time: " + str(getResultsTime) + "seconds")
+    print("Function FilterDuplicates(): " + str(filterDuplicatesTime) + "seconds")
+    print("Function NetCommuteFilter() time: " + str(netCommuteFilterTime) + "seconds")
+    print("Function VerifyResults() time: " + str(VerifyResultsTime) +"seconds")
+
+def SaveResultsAsCSV(L):
+    ''' Exports the results of the program into a CSV file'''
+
     resultsFile = open("brutewiseOpsResults.csv", "w", newline='')
     resultsFileWriter = csv.writer(resultsFile, delimiter=',')
 
-    #Alternative?
-    #resultsFileWriter.writerows(L)
-
-    for i in L:
-        resultsFileWriter.writerow(i)
+    for row in L:
+        resultsFileWriter.writerow(row)
     resultsFile.close()
 
-def getResults(Results):
-    '''DOCSTRING'''
-    test = initial_test_value
-    i = choice(range(test))
-    i2 = choice(range(test))
-    for w in range(len(Z)):
-        for x in range(len(Z)):
-            for y in range(len(Z)):
-                for z in range(len(Z)):
-                    answer = evaluation(str(i),str(i2),w,x,y,z)
-                    if answer!= None:
-                        Results += [answer]
-    return Results
+def GetResults():
+    '''Finds all candidate (possible) results.'''
+    results = []
 
-def verifyResults(Results):
+    #Picks two values to test expressions (in the smaller INITIAL_TEST_VALUE_MAX range)
+    numOne = choice(range(INITIAL_TEST_VALUE_MAX))
+    numTwo = choice(range(INITIAL_TEST_VALUE_MAX))
+
+    #Iterates through all possible permutations of A_ops for 4 operators.
+    for op1 in range(len(A_operators)):
+        for op2 in range(len(A_operators)):
+            for op3 in range(len(A_operators)):
+                for op4 in range(len(A_operators)):
+                    answer = Evaluate(str(numOne),str(numTwo),op1,op2,op3,op4)
+                    if answer != False:
+                        results += [answer]
+    return results
+
+def VerifyResults(Results):
     '''verifyResults() iterates through the list of possible results and
     checks each one several times using calculate().
     Returns the updated list of results.'''
@@ -124,31 +122,34 @@ def verifyResults(Results):
                 n+=1
     return (tempRes, n)
 
-def test(L, N=2):
-    """Input list in form ['op1', 'op2', 'op3', 'op4'] and a number N.
-    Output: Runs '(A [op1] B) [op2] (A [op3] B) = A [op4] B' N times.
-    Returns True if this expression is True all N times. """
-    for j in range(N):
-        if calculate(L) == False:
+def VerifyExpression(expression, timesToCheck=2):
+    ''' Input list in form ['op1', 'op2', 'op3', 'op4'] and a number timesToCheck.
+    Output: Runs '(A [op1] B) [op2] (A [op3] B) = A [op4] B' timesToCheck times.
+    Returns True if this expression is True for all cases. '''
+    for i in range(timesToCheck):
+        if calculate(expression) == False:
             return False
     return True
 
-def evaluation(a,b,w,x,y,z):
-    '''DOCSTRING'''
+def Evaluate(a,b,w,x,y,z):
+    '''Takes two positive integers as strings and 4 operators and checks if (a op1 b) op2 (a op3 b) = a op4 b'''
     try:
-        if eval(str(eval(a+Z[w]+b))+Z[x]+str(eval(a+Z[y]+b)))== eval(a+Z[z]+b):
-            return [ Z[w],Z[x],Z[y],Z[z] ]
+        if eval(str(eval(a+A_operators[w]+b))+A_operators[x]+str(eval(a+A_operators[y]+b)))== eval(a+A_operators[z]+b):
+            return [ A_operators[w],A_operators[x],A_operators[y],A_operators[z] ]
     except:
-        pass
+        return False
 
-def unique(Results):
+def FilterDuplicates(results):
     '''Filters out duplicates from a list.'''
-    UniRes = []
-    for i in range(len(Results)):
-        if Results[i] not in Results[i+1:]:
-            UniRes += Results[i:i+1]
-    return UniRes  
-#TODO: Functions in between the lines below need work. They are not currently operating correctly! 
+    uniqueResults = []
+
+    #For each item in Results, it checks if that same item is in the rest of the list
+    for i in range(len(results)):
+        if results[i] not in results[i+1:]:
+            uniqueResults += results[i:i+1]
+    return uniqueResults
+
+#TODO: Functions in between the lines below need work. They are not currently operating correctly!
 #There are two because one may be better than the other.
 # ------------------------------------------------------------------------------
 def NetCommuteFilter1(Results):
@@ -157,7 +158,7 @@ def NetCommuteFilter1(Results):
     for i in range(len(Results)):
         for j in range( i+1, len(Results) ):
             ComRes += CommuteFilter1(Results[i], Results[j])
-    ComRes = unique(ComRes)
+    ComRes = FilterDuplicates(ComRes)
     return ComRes
 
 
@@ -202,19 +203,9 @@ def calculate(L):
                 if eval( str(eval('c'+L[0]+'b')) + L[1] + str(eval('c'+L[2]+'b')) ) == eval('c'+L[3]+'b'):
                     if eval( str(eval('a'+L[0]+'a')) + L[1] + str(eval('a'+L[2]+'a')) ) == eval('a'+L[3]+'a'):
                         return True
-        else:
-            return False
+        return False
     except:
-        pass
-
-#correct = True
-#j = 0
-#while j > 0:
-#if calculate(i) == False:
-#correct = False
-#j -= 1
-#if correct == True:
-#print(i)
+        return False
 
 if __name__  == "__main__":
     Main()
