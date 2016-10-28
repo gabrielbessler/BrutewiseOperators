@@ -108,7 +108,7 @@ def calculate(L):
     '''Takes a list of operators for a Type One expression and returns True if the expression is valid.'''
     a = choice(range(MIN_TEST_VAL,MAX_TEST_VAL))
     b = choice(range(MIN_TEST_VAL,MAX_TEST_VAL))
-    c = choice(range(LOW_LOW_TEST_VAL,High_LOW_TEST_VAL))
+    c = choice(range(LOW_LOW_TEST_VAL,HIGH_LOW_TEST_VAL))
     
     try:
         if eval( str(eval('a'+L[0]+'b')) + L[1] + str(eval('a'+L[2]+'b')) ) == eval('a'+L[3]+'b'):
