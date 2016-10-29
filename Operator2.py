@@ -44,8 +44,8 @@ def GetIterativeResults():
     '''Gets output by iterating through all possible combinations of operators.'''
     results = GetResults()
     results = FilterDuplicates(results)
-    results = NetCommuteFilter(results)
     results = VerifyResults(results)
+    results = NetCommuteFilter(results)
     results = tempR[0]
     n = tempR[1]
     if exportResults == True:
@@ -123,7 +123,7 @@ def VerifyResults(Results):
     return (tempRes, n)
 
 def VerifyExpression(expression, timesToCheck=2):
-    ''' Input list in form ['op1', 'op2', 'op3', 'op4'] and a number timesToCheck.
+    ''' Input list in form ['op1', 'op2', 'op3', 'op4'] and a number timesToCheck
     Output: Runs '(A [op1] B) [op2] (A [op3] B) = A [op4] B' timesToCheck times.
     Returns True if this expression is True for all cases. '''
     for i in range(timesToCheck):
@@ -142,35 +142,12 @@ def Evaluate(a,b,w,x,y,z):
 def FilterDuplicates(results):
     '''Filters out duplicates from a list.'''
     uniqueResults = []
-
+    
     #For each item in Results, it checks if that same item is in the rest of the list
     for i in range(len(results)):
         if results[i] not in results[i+1:]:
             uniqueResults += results[i:i+1]
     return uniqueResults
-
-#TODO: Functions in between the lines below need work. They are not currently operating correctly!
-#There are two because one may be better than the other.
-# ------------------------------------------------------------------------------
-def NetCommuteFilter1(Results):
-    '''Filters out commutatively identical lists'''
-    ComRes = []
-    for i in range(len(Results)):
-        for j in range( i+1, len(Results) ):
-            ComRes += CommuteFilter1(Results[i], Results[j])
-    ComRes = FilterDuplicates(ComRes)
-    return ComRes
-
-
-def CommuteFilter1(L1, L2):
-    '''Checks if two lists are commutatively identical'''
-    if L1[1] == '+' and L2[1] == '+' and L1[3] == L2[3]:
-        if L1[0] == L2[2] and L1[2] == L2[0]:
-            return L1
-    elif L1[1] == '*' and L2[1] == '*' and L1[3] == L2[3]:
-        if L1[0] == L2[2] and L1[2] == L2[0]:
-            return L1
-    return [L1]+[L2]
 
 def CommuteFilter(L1, L2):
     '''Checks if two lists are commutatively identical'''
@@ -180,18 +157,21 @@ def CommuteFilter(L1, L2):
                 return True
             elif L1[1] == '*' and L2[1] == '*':
                 return True
-    else:
-        return False
+    return False
 
 def NetCommuteFilter(Results):
     '''Filters out commutatively identical lists'''
     ComRes = []
     for i in range(len(Results)):
+        if i == len(Results) - 1:
+            ComRes += [Results[i]]
         for j in range( i+1, len(Results) ):
-            if CommuteFilter(Results[i], Results[j]) == False:
+            if CommuteFilter(Results[i], Results[j]) == True:
+                break
+            else: 
                 ComRes += [ Results[i] ]
-    return ComRes
-# --------------------------------------------------------------------
+    return ComRes 
+
 def calculate(L):
     '''Takes a list of operators for a Type One expression and returns True if the expression is valid.'''
     a = choice(range(MIN_TEST_VAL,MAX_TEST_VAL))
