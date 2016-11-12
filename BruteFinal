@@ -1,24 +1,22 @@
-from random import *
 import sys
 import timeit
 import csv
 
-# TODO: Implement function that will save results every X results
-B_operators = ['<<', '>>', '&', '|' ] #basic biwise ops
-T_operators = ['+', '-', '*', '/', '%', '**'] #basic real ops
-#A_operators = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//'] #larger set of both bitwise and real ops
-A_operators = ['&', '|']
-#Range of test values:
-INITIAL_TEST_VALUE1 = 151
-INITIAL_TEST_VALUE2 = 200
+A_operators = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//', '~+', '**'] 
 
-uglyCSV = False
+#Range of test values:
+INITIAL_TEST_VALUE1 = 2
+INITIAL_TEST_VALUE2 = 3
+
+debug = False
 
 def Main():
     '''Manages the computation and output of results'''
-    confirmRun = input("Are you sure [yes/no]?\n")
-    if confirmRun == "yes":
-        GetIterativeResults()
+    if debug == True:
+        confirmRun = input("Are you sure [yes/no]?\n")
+        if confirmRun == "yes":
+            GetIterativeResults()
+    GetIterativeResults()
 
 def GetIterativeResults():
     '''Gets output by iterating through all possible combinations of operators.'''
@@ -28,7 +26,7 @@ def GetIterativeResults():
     print("Filtering Duplicates...")
     results = FilterDuplicates(results)
     print("DONE")
-    print("Commuting...")
+    print("Removing Commutatively Identical Results...")
     results = NetCommuteFilter(results)
     print("DONE")
     print("Verifying Results...")
@@ -42,45 +40,57 @@ def GetIterativeResults():
     print("Number of Non-Trivial Results:", len(results[1]))
     if saveAsCSV == True:
         SaveResultsAsCSV(results[0] + results[1], "Final")
+    elif saveAsTXT == True:
+        SaveResultsAsTXT(results, "Final")
+    else:
+        return 
 
-def SetExport(a):
-    if a == True:
+def SetExport(Output):
+    ''' Defines the output file type'''
+    if Output == 'CSV':
         saveAsCSV = True
         global saveAsCSV
+    elif Output == 'TXT':
+        saveAsTXT = True
+        global saveAsTXT
     else:
         saveAsCSV = False
         global saveAsCSV
+        saveAsTXT = False
+        global saveAsTXT
 
 def SetOperatorList(S):
+    ''' Defines the bitwise list to be tested'''
     A_operators = eval(S)
+    global A_operators
 
 def GetProgress():
+    ''' Current progress of the evaluate function'''
     Current = counter
     Total = ResLen
     return Current/Total
 
-def SaveResultsAsCSV(L, fileName):
+def SaveResultsAsCSV(Results, fileName):
     ''' Exports the results of the program into a CSV file'''
     resultsFile = open("brutewiseOpsResults" + str(fileName) + ".csv", "w", newline='')
     resultsFileWriter = csv.writer(resultsFile, delimiter=',')
-    for row in L:
+    for row in Results:
         resultsFileWriter.writerow(row)
     resultsFile.close()
 
-def SaveResultsAsCSVNonUgly(Results):
-    ''' Exports the result of the program into a CSV file. Classifies trivial and non-trivial results
-    '''
-    resultsFile = open("brutewiseOpsResults.csv", "w", newline='')
-    resultsFileWriter = csv.writer(resultsFile, delimiter=',')
-    resultsFileWriter.writerow('Trivial Results:')
-    resultsFileWriter.writerow('%20=')
+def SaveResultsAsTXT(Results, fileName):
+    '''EXports the results of the program as a txt file'''
+    TotalAmount = 5
+    text_file = open("BruteWiseResults" + str(fileName)+ ".txt", "w", newline='')
+    text_file.write("Trivial Results:\n")
+    text_file.write("====================\n")
     for row in Results[0]:
-        resultsFileWriter.writerow(row)
-    resultsFileWriter.writerow('Non-Trivial Results:')
-    resultsFileWriter.writerow('%20=')
+        text_file.write(str(row)+"\n")
+    text_file.write("Non-Trivial Results:\n")
+    text_file.write("====================\n")
     for row in Results[1]:
-        resultsFileWriter.writerow(row)
-    resultsFile.close()
+        text_file.write(str(row)+"\n")
+    text_file.close()
 
 def GetResults():
     '''Finds all candidate (possible) results.'''
@@ -133,7 +143,7 @@ def Evaluate(a,b,w,x,y,z):
         return False
 
 def FilterDuplicates(results):
-    '''Filters out duplicates from a list.'''
+    '''Filters out duplicates from a list'''
     uniqueResults = []
     for i in range(len(results)):
         if results[i] not in results[i+1:]:
