@@ -1,0 +1,209 @@
+from random import *
+import sys
+import timeit
+import csv
+
+# TODO: Implement function that will save results every X results
+B_operators = ['<<', '>>', '&', '|' ] #basic biwise ops
+T_operators = ['+', '-', '*', '/', '%', '**'] #basic real ops
+#A_operators = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//'] #larger set of both bitwise and real ops
+A_operators = ['&', '|']
+#Range of test values:
+INITIAL_TEST_VALUE1 = 151
+INITIAL_TEST_VALUE2 = 200
+
+uglyCSV = False
+
+def Main():
+    '''Manages the computation and output of results'''
+    confirmRun = input("Are you sure [yes/no]?\n")
+    if confirmRun == "yes":
+        GetIterativeResults()
+
+def GetIterativeResults():
+    '''Gets output by iterating through all possible combinations of operators.'''
+    print("Getting Results...")
+    results = GetResults()
+    print("DONE")
+    print("Filtering Duplicates...")
+    results = FilterDuplicates(results)
+    print("DONE")
+    print("Commuting...")
+    results = NetCommuteFilter(results)
+    print("DONE")
+    print("Verifying Results...")
+    results = VerifyResults(results)
+    print("DONE")
+    print("Classifying Results...")
+    results = SeparateTrivial(results)
+    print("DONE!")
+    print("Total Number of Results:", len(results[0]) + len(results[1]))
+    print("Number of Trivial Results:", len(results[0]))
+    print("Number of Non-Trivial Results:", len(results[1]))
+    if saveAsCSV == True:
+        SaveResultsAsCSV(results[0] + results[1], "Final")
+
+def SetExport(a):
+    if a == True:
+        saveAsCSV = True
+        global saveAsCSV
+    else:
+        saveAsCSV = False
+        global saveAsCSV
+
+def SetOperatorList(S):
+    A_operators = eval(S)
+
+def GetProgress():
+    Current = counter
+    Total = ResLen
+    return Current/Total
+
+def SaveResultsAsCSV(L, fileName):
+    ''' Exports the results of the program into a CSV file'''
+    resultsFile = open("brutewiseOpsResults" + str(fileName) + ".csv", "w", newline='')
+    resultsFileWriter = csv.writer(resultsFile, delimiter=',')
+    for row in L:
+        resultsFileWriter.writerow(row)
+    resultsFile.close()
+
+def SaveResultsAsCSVNonUgly(Results):
+    ''' Exports the result of the program into a CSV file. Classifies trivial and non-trivial results
+    '''
+    resultsFile = open("brutewiseOpsResults.csv", "w", newline='')
+    resultsFileWriter = csv.writer(resultsFile, delimiter=',')
+    resultsFileWriter.writerow('Trivial Results:')
+    resultsFileWriter.writerow('%20=')
+    for row in Results[0]:
+        resultsFileWriter.writerow(row)
+    resultsFileWriter.writerow('Non-Trivial Results:')
+    resultsFileWriter.writerow('%20=')
+    for row in Results[1]:
+        resultsFileWriter.writerow(row)
+    resultsFile.close()
+
+def GetResults():
+    '''Finds all candidate (possible) results.'''
+    results = []
+    numOne = INITIAL_TEST_VALUE1
+    numTwo = INITIAL_TEST_VALUE2
+    for op1 in range(len(A_operators)):
+        for op2 in range(len(A_operators)):
+            for op3 in range(len(A_operators)):
+                for op4 in range(len(A_operators)):
+                    answer = Evaluate(str(numOne),str(numTwo),op1,op2,op3,op4)
+                    if answer != False:
+                        results += [answer]
+    return results
+
+def VerifyResults(Results):
+    ''' Verifies all results
+    '''
+    counter = 0
+    VerRes = []
+    ResLen = len(Results)
+    global ResLen
+    print("Number of Results Under Review:", len(Results))
+    for i in Results:
+        counter += 1
+        global counter
+        if Bit_8(i) == True:
+            VerRes += [i]
+        if counter % 500 == 0: 
+            SaveResultsAsCSV(VerRes, str(counter // 500))
+    return VerRes
+
+def VerifyExpression(expression, timesToCheck=1):
+    ''' Input list in form ['op1', 'op2', 'op3', 'op4'] and a number timesToCheck
+    Output: Runs '(A [op1] B) [op2] (A [op3] B) = A [op4] B' timesToCheck times.
+    Returns True if this expression is True for all cases. '''
+    for i in range(timesToCheck):
+        if Bit_8(expression) == False:
+            return False
+    return True
+
+def Evaluate(a,b,w,x,y,z):
+    '''Takes two positive integers as strings and 4 operators and checks if (a op1 b) op2 (a op3 b) = a op4 b'''
+    try:
+        if eval(str(eval(a+A_operators[w]+b))+A_operators[x]+str(eval(a+A_operators[y]+b)))== eval(a+A_operators[z]+b):
+            return [ A_operators[w],A_operators[x],A_operators[y],A_operators[z] ]
+        else:
+            return False
+    except:
+        return False
+
+def FilterDuplicates(results):
+    '''Filters out duplicates from a list.'''
+    uniqueResults = []
+    for i in range(len(results)):
+        if results[i] not in results[i+1:]:
+            uniqueResults += results[i:i+1]
+    return uniqueResults
+
+def CommuteFilter(L1, L2):
+    '''Checks if two lists are commutatively identical'''
+    if L1[0] == L2[2] and L1[2] == L2[0]:
+        if L1[3] == L2[3]:
+            if L1[1] == '+' and L2[1] == '+':
+                return True
+            elif L1[1] == '*' and L2[1] == '*':
+                return True
+    return False
+
+def NetCommuteFilter(Results):
+    ''' Checks if any commutatively identical bitwise lists exist in Results
+    '''
+    CommuteResults = []
+    n = []
+    for i in range(len(Results)):
+        for j in range(i + 1, len(Results)):
+            if CommuteFilter(Results[i], Results[j]) == True:
+                n += [i]
+                break
+    for k in range(len(Results)):
+        if k not in n:
+            CommuteResults += [ Results[k] ]
+    return CommuteResults
+
+def Bit_8(L):
+    ''' Takes in a list of operators for a Type One expression and returns True if the expression is a valid bitwise expression up to an 8 bit number
+    '''
+    for i in range(256):
+        for j in range(256):
+            try:
+                if eval(str(eval(str(i)+L[0]+str(j))) + L[1] + str(eval(str(i)+L[2]+str(j)))) == eval(str(i)+L[3]+str(j)):
+                    continue
+                else:
+                    return False
+            except:
+                return False
+    return True
+
+def Bit_Big(L):
+    ''' Takes in a list of operators for a Type One expression and returns True if the expression is a valid bitwise expression up to an 8 bit number
+    '''
+    for i in range(500):
+        for j in range(500):
+            try:
+                if eval(str(eval(str(i)+L[0]+str(j))) + L[1] + str(eval(str(i)+L[2]+str(j)))) == eval(str(i)+L[3]+str(j)):
+                    continue
+                else:
+                    return False
+            except:
+                return False
+    return True
+
+def SeparateTrivial(Results):
+    ''' Separates result into Type 1 and Type 2 bitwise operates
+    '''
+    Type_1 = []
+    Type_2 = []
+    for i in Results:
+        if i[0] == i[2] and i[2] == i[3]:
+            Type_1 += [i]
+        else:
+            Type_2 += [i]
+    return [Type_1, Type_2]
+
+if __name__  == "__main__":
+    Main()
