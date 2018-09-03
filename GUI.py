@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.ttk import *
 import BruteWise as BT
 import threading
+import winsound
 
 def findResults():
     exportResults = exportChoice.get()

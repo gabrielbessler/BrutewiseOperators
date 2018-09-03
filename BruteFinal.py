@@ -1,12 +1,15 @@
+from random import *
 import sys
 import timeit
 import csv
 
-A_operators = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//', '~+', '**'] 
+A_operators = ['&', '|', '+', '-', '*', '/', '%', '^', '<<', '>>', '//', '~+', '**']
 
 #Range of test values:
 INITIAL_TEST_VALUE1 = 2
 INITIAL_TEST_VALUE2 = 3
+
+uglyCSV = False 
 
 debug = False
 
@@ -16,53 +19,64 @@ def Main():
         confirmRun = input("Are you sure [yes/no]?\n")
         if confirmRun == "yes":
             GetIterativeResults()
-    GetIterativeResults()
+    else:
+        GetIterativeResults()
 
 def GetIterativeResults():
     '''Gets output by iterating through all possible combinations of operators.'''
-    print("Getting Results...")
+    if debug == True:
+        print("Getting Results...")
+    SetStep("Step 1/5:")
     results = GetResults()
-    print("DONE")
-    print("Filtering Duplicates...")
+    if debug == True:
+        print("DONE")
+        print("Filtering Duplicates...")
+    SetStep("Step: 2/5:")
     results = FilterDuplicates(results)
-    print("DONE")
-    print("Removing Commutatively Identical Results...")
+    if debug == True:
+        print("DONE")
+        print("Removing Commutatively Identical Results...")
+    SetStep("Step 3/5:")
     results = NetCommuteFilter(results)
-    print("DONE")
-    print("Verifying Results...")
+    if debug == True:
+        print("DONE")
+        print("Verifying Results...")
+    SetStep("Step 4/5:")
     results = VerifyResults(results)
-    print("DONE")
-    print("Classifying Results...")
+    if debug == True:
+        print("DONE")
+        print("Classifying Results...")
+    SetStep("Step 5/5:")
     results = SeparateTrivial(results)
-    print("DONE!")
-    print("Total Number of Results:", len(results[0]) + len(results[1]))
-    print("Number of Trivial Results:", len(results[0]))
-    print("Number of Non-Trivial Results:", len(results[1]))
-    if saveAsCSV == True:
-        SaveResultsAsCSV(results[0] + results[1], "Final")
-    elif saveAsTXT == True:
-        SaveResultsAsTXT(results, "Final")
-    else:
-        return 
+    if debug == True:
+        print("DONE!")
+        print("Total Number of Results:", len(results[0]) + len(results[1]))
+        print("Number of Trivial Results:", len(results[0]))
+        print("Number of Non-Trivial Results:", len(results[1]))
 
-def SetExport(Output):
+    if saveAs.lower() == "csv":
+        SaveResultsAsCSV(results[0] + results[1], "Final")
+    elif saveAs.lower() == "txt":
+        SaveResultsAsTXT(results, "Final")
+
+def SetExport(s):
     ''' Defines the output file type'''
-    if Output == 'CSV':
-        saveAsCSV = True
-        global saveAsCSV
-    elif Output == 'TXT':
-        saveAsTXT = True
-        global saveAsTXT
-    else:
-        saveAsCSV = False
-        global saveAsCSV
-        saveAsTXT = False
-        global saveAsTXT
+    saveAs = s
+    global saveAs
 
 def SetOperatorList(S):
     ''' Defines the bitwise list to be tested'''
     A_operators = eval(S)
     global A_operators
+
+def GetStep():
+    ''' DOCSTRING '''
+    return step
+
+def SetStep(s):
+    ''' DOCSTRING '''
+    step = s
+    global step
 
 def GetProgress():
     ''' Current progress of the evaluate function'''
@@ -70,11 +84,11 @@ def GetProgress():
     Total = ResLen
     return Current/Total
 
-def SaveResultsAsCSV(Results, fileName):
+def SaveResultsAsCSV(L, fileName):
     ''' Exports the results of the program into a CSV file'''
     resultsFile = open("brutewiseOpsResults" + str(fileName) + ".csv", "w", newline='')
     resultsFileWriter = csv.writer(resultsFile, delimiter=',')
-    for row in Results:
+    for row in L:
         resultsFileWriter.writerow(row)
     resultsFile.close()
 
@@ -113,14 +127,16 @@ def VerifyResults(Results):
     VerRes = []
     ResLen = len(Results)
     global ResLen
-    print("Number of Results Under Review:", len(Results))
+    if debug == True:
+        print("Number of Results Under Review:", len(Results))
     for i in Results:
         counter += 1
         global counter
         if Bit_8(i) == True:
             VerRes += [i]
-        if counter % 500 == 0: 
-            SaveResultsAsCSV(VerRes, str(counter // 500))
+        #TODO: fix
+        #if counter % 500 == 0:
+        #    SaveResultsAsCSV(VerRes, str(counter // 500))
     return VerRes
 
 def VerifyExpression(expression, timesToCheck=1):
@@ -143,7 +159,7 @@ def Evaluate(a,b,w,x,y,z):
         return False
 
 def FilterDuplicates(results):
-    '''Filters out duplicates from a list'''
+    '''Filters out duplicates from a list.'''
     uniqueResults = []
     for i in range(len(results)):
         if results[i] not in results[i+1:]:
